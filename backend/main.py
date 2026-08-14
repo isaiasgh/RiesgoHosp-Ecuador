@@ -19,6 +19,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+# IMPORTANTE: Se agregan las importaciones necesarias para la clase personalizada
+from sklearn.base import BaseEstimator, TransformerMixin
+
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -29,6 +33,37 @@ METADATA_PATH = MODELO_DIR / "metadata.json"
 # El nombre del .keras/.joblib no viene en metadata, así que asumimos la
 # convención "modelo.<formato>". Si en algún export usan otro nombre, ajustar acá.
 
+
+# ---------------------------------------------------------------------------
+# Clases personalizadas del modelo (Requeridas por joblib para deserializar)
+# ---------------------------------------------------------------------------
+
+class FeatureEngineer(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        X = X.copy()
+        
+        unidad = X["cod_edad"].astype(str)
+        valor = pd.to_numeric(X["edad"], errors="coerce")
+
+        factor = pd.Series(np.nan, index=X.index, dtype="float64")
+        factor[unidad.str.contains("Anos") | unidad.str.contains("Años")] = 1.0
+        factor[unidad.str.contains("Meses")] = 1.0 / 12.0
+        factor[unidad.str.contains("Dias") | unidad.str.contains("Días")] = 1.0 / 365.25
+        factor[unidad.str.contains("Horas")] = 1.0 / (24.0 * 365.25)
+
+        X["edad_anios"] = valor * factor
+        
+        fecha = pd.to_datetime(X["fecha_ingr"], errors="coerce")
+        X["dow_ingr"] = fecha.dt.dayofweek.astype("Int64").astype(str)
+
+        X = X.drop(columns=["edad", "cod_edad", "fecha_ingr"])
+        return X
+
+import __main__
+__main__.FeatureEngineer = FeatureEngineer
 
 # ---------------------------------------------------------------------------
 # Contenedor simple para los artefactos cargados en memoria.
@@ -73,7 +108,11 @@ class ModeloRuntime:
             X = X.reshape(-1, n_features, 1)
 
         if self.formato == "joblib":
-            proba = self.modelo.predict_proba(X)[:, 1]
+            if hasattr(self.modelo, "predict_proba"):
+                proba = self.modelo.predict_proba(X)[:, 1]
+            else:
+                z = self.modelo.decision_function(X)
+                proba = 1 / (1 + np.exp(-z))
         else:
             proba = self.modelo.predict(X).ravel()
 
@@ -150,7 +189,7 @@ class PacienteInput(BaseModel):
     prov_res: str = Field(..., description="Código de provincia de residencia del paciente")
     cant_res: str = Field(..., description="Código de cantón de residencia del paciente")
     area_res: str = Field(..., description="Código de área (urbana/rural) de residencia")
-    mes_ingr: int = Field(..., ge=1, le=12, description="Mes de ingreso hospitalario")
+    mes_ingr: str = Field(..., description="Mes de ingreso hospitalario")
     dia_ingr: int = Field(..., ge=1, le=31, description="Día de ingreso hospitalario")
     fecha_ingr: str = Field(..., description="Fecha de ingreso, formato YYYY-MM-DD")
     cap221rx: str = Field(..., description="Código de capítulo CIE (agrupación de 221) del diagnóstico")
