@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentación — Predictor de Riesgo de Mortalidad Hospitalaria</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================== ENCABEZADO / NAV ============================== -->
+  <header class="site-header">
+    <div class="brand">
+      <p class="brand-title">
+        Predictor de Riesgo de Mortalidad Hospitalaria
+        <span>Modelo de IA sobre datos de egresos hospitalarios</span>
+      </p>
+    </div>
+    <nav class="main-nav">
+      <a href="index.html">Predictor</a>
+      <a href="about.html" aria-current="page">Documentación</a>
+    </nav>
+  </header>
+
+  <main>
+    <article class="doc-content">
+
+      <h1>Acerca del proyecto</h1>
+      <p>
+        Esta interfaz representa un sistema experimental diseñado para estimar la
+        <strong>probabilidad de mortalidad intrahospitalaria</strong> de un paciente. 
+        Las inferencias se realizan evaluando exclusivamente la información temprana disponible al momento 
+        del ingreso al establecimiento de salud, tal como factores demográficos, ubicación, tipo de 
+        establecimiento y modalidad de aseguramiento. 
+      </p>
+      <p>
+        El modelo fue entrenado utilizando el registro histórico de Egresos Hospitalarios del Ecuador (INEC). 
+        El propósito de la herramienta es servir como un recurso predictivo de apoyo al triaje y priorización 
+        de pacientes, contribuyendo a la optimización de los recursos médicos desde el minuto cero.
+      </p>
+
+      <div class="callout">
+        <strong>Nota:</strong> Este resultado es una estimación estadística basada en patrones de datos 
+        históricos generada por algoritmos de Machine Learning. En ningún caso constituye un 
+        diagnóstico clínico o sustituye la valoración de un profesional médico certificado.
+      </div>
+
+      <hr>
+
+      <h2>Guía de Uso</h2>
+      <ol>
+        <li>
+          Navegue hacia la pestaña <a href="index.html">Predictor</a> en el menú superior.
+        </li>
+        <li>
+          Para una demostración rápida, utilice el botón <strong>«Cargar datos de prueba»</strong>. Esto 
+          inyectará un caso simulado válido dentro de todos los campos requeridos del formulario.
+        </li>
+        <li>
+          Para realizar pruebas masivas, utilice el botón <strong>«Cargar archivo JSON»</strong>
+          para subir un lote de datos estructurados:
+          <ul>
+            <li>
+              Si el archivo contiene un <strong>objeto individual</strong>
+              (<code>{ ... }</code>), los datos poblarán el formulario de forma inmediata.
+            </li>
+            <li>
+              Si el archivo contiene un <strong>arreglo de múltiples pacientes</strong>
+              (<code>[{ ... }, { ... }]</code>), se habilitará una tabla de previsualización. 
+              Puede interactuar con cualquier fila para poblar el formulario con ese registro específico, o 
+              utilizar el botón <strong>«Seleccionar paciente al azar»</strong>.
+            </li>
+          </ul>
+        </li>
+        <li>
+          Haga clic en <strong>«Predecir riesgo»</strong>. El panel lateral cambiará su estado a 
+          <em>«Procesando...»</em> mientras el modelo remoto procesa el vector de características.
+        </li>
+        <li>
+          Tras una ejecución exitosa, la interfaz presentará la probabilidad de mortalidad del paciente. 
+          Si la estimación supera el umbral matemático definido, se activará una bandera de 
+          <span class="risk-badge riesgo-alto" style="font-size:0.7rem;">Riesgo alto</span>.
+        </li>
+        <li>
+          Si los datos enviados no cumplen con los esquemas de validación del sistema, el servidor 
+          rechazará la solicitud (HTTP 422 Unprocessable Entity) y se detallarán los campos con errores en rojo.
+        </li>
+      </ol>
+
+      <hr>
+
+      <h2>Arquitectura Técnica</h2>
+      <p>
+        La solución está implementada bajo una arquitectura Cliente-Servidor desacoplada. El cliente 
+        es una interfaz estática ligera que se comunica mediante solicitudes HTTP asíncronas con una API 
+        RESTful que aloja los artefactos binarios del modelo predictivo.
+      </p>
+
+      <table class="tech-table">
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th>Tecnologías</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cliente Web (Frontend)</td>
+            <td>Vanilla HTML5, CSS3, JS Nativo</td>
+            <td>Garantiza una interfaz ultraligera, libre de dependencias o compiladores. 
+            Gestiona la captura de los inputs, orquesta la carga de archivos locales vía <code>FileReader API</code> y realiza 
+            las peticiones <code>fetch()</code> a la API.</td>
+          </tr>
+          <tr>
+            <td>Capa de Servicios (Backend)</td>
+            <td>FastAPI, Uvicorn, Pydantic</td>
+            <td>Expone el servicio de inferencia en <code>/api/v1/predict/riesgo-mortalidad</code>. 
+            Garantiza validaciones de tipos estrictas y gestiona la carga en memoria de los artefactos predictivos.</td>
+          </tr>
+          <tr>
+            <td>Ingeniería de Características</td>
+            <td>Scikit-learn, Imbalanced-learn</td>
+            <td>Aplica un <code>Pipeline</code> encapsulado. Normaliza unidades de medida heterogéneas (ej. edad en horas vs años), aplica imputación estadística a variables faltantes, balancea las clases mediante <code>SMOTE</code> y codifica la matriz de datos con <code>OneHotEncoder</code>.
+            <br><br>
+            <strong>Nota Crítica:</strong> Se descartaron por completo las variables de diagnóstico definitivo (Causas CIE-10) del dataset original para evitar fenómenos de <em>Data Leakage</em> (fuga de información), garantizando que el modelo opere únicamente con datos reales de ingreso.</td>
+          </tr>
+          <tr>
+            <td>Modelado Inicial</td>
+            <td>Perceptrón Simple, MLP, CNN 1D y LSTM</td>
+            <td>Durante la experimentación, se ajustaron y evaluaron múltiples arquitecturas bajo optimización de hiperparámetros automatizada para encontrar la mejor aproximación al problema.</td>
+          </tr>
+          <tr>
+            <td>Modelo en Producción</td>
+            <td>Regresión Logística</td>
+            <td>El algoritmo de <strong>Regresión Logística</strong> fue seleccionado como el modelo final en producción debido a que maximizó la métrica <em>Recall</em> de la clase minoritaria, 
+            priorizando la sensibilidad clínica para asegurar la detección de la mayor cantidad de pacientes en verdadero riesgo, superando la complejidad de las redes neuronales en este escenario tabular específico.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Formato de Comunicación</h3>
+      <p>
+        El frontend envía un <code>POST</code> con el cuerpo en formato JSON
+        hacia la API, compuesto por un vector estricto de 20 campos por paciente, correspondientes a: 
+        ubicación y tipo del establecimiento, datos demográficos, aseguramiento del paciente,
+        residencia, y fecha de ingreso. 
+        <br><br>
+        La respuesta exitosa incluye tres campos: la probabilidad calculada (<code>proba</code>), la bandera booleana de riesgo alto
+        (<code>riesgo_alto</code>, verdadera si <code>proba</code> supera el
+        umbral de decisión configurado en el servidor) y el nombre del algoritmo
+        usado (<code>modelo_usado</code>). Si algún campo no cumple el esquema establecido, 
+        la API responde con código <code>422</code> y el listado de errores de validación estructurados.
+      </p>
+
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <p>Interfaz de demostración — consume la API local en
+      <code>http://127.0.0.1:8000/api/v1/predict/riesgo-mortalidad</code>.
+    </p>
+  </footer>
+
+</body>
+</html>
