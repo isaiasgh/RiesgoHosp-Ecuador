@@ -1,0 +1,36 @@
+{
+  "nombre_modelo": "Perceptron simple",
+  "formato_modelo": "joblib",
+  "requiere_reshape_features_1": false,
+  "n_features_tras_preprocesamiento": 256,
+  "umbral_decision": 0.5,
+  "metricas_test": {
+    "recall": 0.891114245416079,
+    "f1": 0.07827250427413959,
+    "auc_roc": 0.8583245749610081
+  },
+  "columnas_entrada_crudas_esperadas": [
+    "prov_ubi",
+    "cant_ubi",
+    "area_ubi",
+    "clase",
+    "tipo",
+    "entidad",
+    "sector",
+    "nac_pac",
+    "sexo",
+    "cod_edad",
+    "edad",
+    "etnia",
+    "tipo_seg",
+    "dis_pac",
+    "prov_res",
+    "cant_res",
+    "area_res",
+    "mes_ingr",
+    "dia_ingr",
+    "fecha_ingr",
+    "cap221rx",
+    "cau221rx"
+  ]
+}
