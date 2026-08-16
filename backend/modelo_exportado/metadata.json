@@ -1,13 +1,14 @@
 {
-  "nombre_modelo": "Perceptron simple",
+  "nombre_modelo": "Regresion Logistica",
   "formato_modelo": "joblib",
   "requiere_reshape_features_1": false,
-  "n_features_tras_preprocesamiento": 256,
-  "umbral_decision": 0.5,
+  "n_features_tras_preprocesamiento": 182,
+  "umbral_decision": 0.35,
   "metricas_test": {
-    "recall": 0.891114245416079,
-    "f1": 0.07827250427413959,
-    "auc_roc": 0.8583245749610081
+    "recall": 0.7523272214386459,
+    "f1": 0.07968925076566818,
+    "auc_roc": 0.8078220901318787,
+    "pr_auc": 0.06989797983696977
   },
   "columnas_entrada_crudas_esperadas": [
     "prov_ubi",
@@ -29,8 +30,6 @@
     "area_res",
     "mes_ingr",
     "dia_ingr",
-    "fecha_ingr",
-    "cap221rx",
-    "cau221rx"
+    "fecha_ingr"
   ]
 }

@@ -192,8 +192,6 @@ class PacienteInput(BaseModel):
     mes_ingr: str = Field(..., description="Mes de ingreso hospitalario")
     dia_ingr: int = Field(..., ge=1, le=31, description="Día de ingreso hospitalario")
     fecha_ingr: str = Field(..., description="Fecha de ingreso, formato YYYY-MM-DD")
-    cap221rx: str = Field(..., description="Código de capítulo CIE (agrupación de 221) del diagnóstico")
-    cau221rx: str = Field(..., description="Código de causa CIE (agrupación de 221) del diagnóstico")
 
     class Config:
         json_schema_extra = {
@@ -211,15 +209,13 @@ class PacienteInput(BaseModel):
                 "edad": 65,
                 "etnia": "MESTIZO",
                 "tipo_seg": "NINGUNO",
-                "dis_pac": None,
+                "dis_pac": "Ninguna",
                 "prov_res": "17",
                 "cant_res": "1701",
                 "area_res": "1",
-                "mes_ingr": 3,
+                "mes_ingr": "Marzo",
                 "dia_ingr": 14,
                 "fecha_ingr": "2024-03-14",
-                "cap221rx": "IX",
-                "cau221rx": "I219",
             }
         }
 
@@ -247,7 +243,11 @@ async def predecir_riesgo_mortalidad(paciente: PacienteInput):
     # El preprocesador fue entrenado esperando un DataFrame, no un dict/array,
     # así que armamos una fila respetando exactamente las columnas crudas.
     columnas_esperadas = modelo_runtime.metadata["columnas_entrada_crudas_esperadas"]
-    fila = {col: getattr(paciente, col) for col in columnas_esperadas}
+    
+    # Extraemos solo las llaves válidas para evitar errores si metadata difiere
+    paciente_dict = paciente.model_dump()
+    fila = {col: paciente_dict.get(col) for col in columnas_esperadas if col in paciente_dict}
+    
     df_row = pd.DataFrame([fila], columns=columnas_esperadas)
 
     try:
@@ -259,7 +259,7 @@ async def predecir_riesgo_mortalidad(paciente: PacienteInput):
 
     return PrediccionOutput(
         proba=proba,
-        riesgo_alto=proba >= umbral,
+        riesgo_alto=bool(proba >= umbral),
         modelo_usado=modelo_runtime.metadata.get("nombre_modelo", "desconocido"),
     )
 

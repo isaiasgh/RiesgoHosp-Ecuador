@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predictor de Riesgo de Mortalidad Hospitalaria</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================== ENCABEZADO / NAV ============================== -->
+  <header class="site-header">
+    <div class="brand">
+      <p class="brand-title">
+        Predictor de Riesgo de Mortalidad Hospitalaria
+        <span>Modelo de IA sobre datos de egresos hospitalarios</span>
+      </p>
+    </div>
+    <nav class="main-nav">
+      <a href="index.html" aria-current="page">Predictor</a>
+      <a href="about.html">Documentación</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="predictor-grid">
+
+      <!-- ============================== FORMULARIO Y TABLAS ============================== -->
+      <section class="panel" aria-labelledby="form-title">
+        <div class="panel-header">
+          <h2 id="form-title">Datos del paciente e ingreso</h2>
+          <div class="header-actions">
+            <button type="button" id="btn-load-sample" class="btn-secondary">
+              Cargar datos de prueba
+            </button>
+            <label for="file-json" class="btn-secondary btn-file-label">
+              Cargar archivo JSON
+            </label>
+            <input type="file" id="file-json" accept=".json,application/json" class="visually-hidden-file">
+          </div>
+        </div>
+
+        <p class="random-hint">El botón «Cargar datos de prueba» autocompleta el formulario con un caso clínico simulado (paciente femenina, 30 años).</p>
+        
+        <!-- Tabla de pacientes -->
+        <div class="json-table-section hidden" id="json-table-section">
+          <div class="table-header">
+            <h3>Pacientes cargados desde archivo</h3>
+            <button type="button" id="btn-random-patient" class="btn-secondary">
+              Seleccionar paciente al azar
+            </button>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="patients-table">
+              <thead>
+                <tr id="patients-table-head"></tr>
+              </thead>
+              <tbody id="patients-table-body"></tbody>
+            </table>
+          </div>
+          <p class="muted" style="margin-top:0.5rem;">Haz clic en una fila para cargar ese paciente en el formulario, o usa el botón "Seleccionar paciente al azar".</p>
+        </div>
+
+        <!-- Texto de ayuda con el resultado_real del paciente seleccionado -->
+        <p class="random-hint hidden" id="random-hint"></p>
+
+        <form id="predict-form" novalidate>
+          <div class="form-grid">
+
+            <!-- Ubicación del establecimiento -->
+            <div class="field">
+              <label for="prov_ubi">Provincia del establecimiento</label>
+              <input type="text" id="prov_ubi" name="prov_ubi" list="list_prov_ubi" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_prov_ubi"></datalist>
+            </div>
+
+            <div class="field">
+              <label for="cant_ubi">Cantón del establecimiento</label>
+              <input type="text" id="cant_ubi" name="cant_ubi" required placeholder="Escribe el cantón...">
+            </div>
+
+            <div class="field">
+              <label for="area_ubi">Área del establecimiento</label>
+              <input type="text" id="area_ubi" name="area_ubi" list="list_area_ubi" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_area_ubi">
+                <option value="Urbana"></option>
+                <option value="Rural"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="clase">Clase de establecimiento</label>
+              <input type="text" id="clase" name="clase" list="list_clase" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_clase">
+                <option value="Hospital general"></option>
+                <option value="Hospital básico"></option>
+                <option value="Hospital de especialidades"></option>
+                <option value="Geriátrico"></option>
+                <option value="Otras clínicas especializadas"></option>
+                <option value="Pediátrico"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="tipo">Tipo de atención</label>
+              <input type="text" id="tipo" name="tipo" list="list_tipo" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_tipo">
+                <option value="Agudo"></option>
+                <option value="Crónico"></option>
+                <option value="Sin tipo hospitales básicos"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="entidad">Entidad</label>
+              <input type="text" id="entidad" name="entidad" list="list_entidad" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_entidad">
+                <option value="Ministerio de Salud Pública"></option>
+                <option value="Instituto Ecuatoriano de Seguridad Social"></option>
+                <option value="Municipios"></option>
+                <option value="Privados con fines de lucro"></option>
+                <option value="Privados sin fines de lucro"></option>
+                <option value="Fuerzas Armadas"></option>
+                <option value="Policía Nacional"></option>
+                <option value="Junta Beneficencia de Guayaquil"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="sector">Sector</label>
+              <input type="text" id="sector" name="sector" list="list_sector" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_sector">
+                <option value="Público"></option>
+                <option value="Privado con fines de lucro"></option>
+                <option value="Privado sin fines de lucro"></option>
+              </datalist>
+            </div>
+
+            <!-- Datos del paciente -->
+            <div class="field">
+              <label for="nac_pac">Nacionalidad</label>
+              <input type="text" id="nac_pac" name="nac_pac" list="list_nac_pac" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_nac_pac">
+                <option value="Ecuatoriano/a"></option>
+                <option value="Extranjero/a"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="sexo">Sexo</label>
+              <input type="text" id="sexo" name="sexo" list="list_sexo" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_sexo">
+                <option value="Mujer"></option>
+                <option value="Hombre"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="cod_edad">Código de edad</label>
+              <input type="text" id="cod_edad" name="cod_edad" list="list_cod_edad" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_cod_edad">
+                <option value="Años (1 a 115 años de edad)"></option>
+                <option value="Meses (1 a 11 meses de edad)"></option>
+                <option value="Días (1 a 29 días de edad)"></option>
+                <option value="Horas (1 a 23 horas de edad)"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="edad">Edad</label>
+              <input type="number" id="edad" name="edad" min="0" max="115" step="1" required>
+            </div>
+
+            <div class="field">
+              <label for="etnia">Etnia</label>
+              <input type="text" id="etnia" name="etnia" list="list_etnia" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_etnia">
+                <option value="Mestizo/a"></option>
+                <option value="Indígena"></option>
+                <option value="Afroecuatoriano/a"></option>
+                <option value="Blanco/a"></option>
+                <option value="Montubio/a"></option>
+                <option value="Sin información"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="tipo_seg">Tipo de seguro</label>
+              <input type="text" id="tipo_seg" name="tipo_seg" list="list_tipo_seg" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_tipo_seg">
+                <option value="Ninguno"></option>
+                <option value="IESS, afiliado seguro general"></option>
+                <option value="IESS, afiliado seguro campesino"></option>
+                <option value="Seguro indirecto"></option>
+                <option value="Seguro ISFFA"></option>
+                <option value="ISSPOL"></option>
+                <option value="Seguro privado"></option>
+                <option value="Otro"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="dis_pac">Discapacidad del paciente</label>
+              <input type="text" id="dis_pac" name="dis_pac" list="list_dis_pac" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_dis_pac">
+                <option value="Ninguna"></option>
+                <option value="Física"></option>
+                <option value="Intelectual"></option>
+                <option value="Auditiva"></option>
+                <option value="Visual"></option>
+                <option value="Psicosocial"></option>
+                <option value="Sin información"></option>
+              </datalist>
+            </div>
+
+            <!-- Residencia del paciente -->
+            <div class="field">
+              <label for="prov_res">Provincia de residencia</label>
+              <input type="text" id="prov_res" name="prov_res" list="list_prov_res" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_prov_res"></datalist>
+            </div>
+
+            <div class="field">
+              <label for="cant_res">Cantón de residencia</label>
+              <input type="text" id="cant_res" name="cant_res" required placeholder="Escribe el cantón...">
+            </div>
+
+            <div class="field">
+              <label for="area_res">Área de residencia</label>
+              <input type="text" id="area_res" name="area_res" list="list_area_res" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_area_res">
+                <option value="Urbana"></option>
+                <option value="Rural"></option>
+              </datalist>
+            </div>
+
+            <!-- Fecha de ingreso -->
+            <div class="field">
+              <label for="mes_ingr">Mes de ingreso</label>
+              <input type="text" id="mes_ingr" name="mes_ingr" list="list_mes_ingr" required autocomplete="off" placeholder="Elige o escribe...">
+              <datalist id="list_mes_ingr">
+                <option value="Enero"></option>
+                <option value="Febrero"></option>
+                <option value="Marzo"></option>
+                <option value="Abril"></option>
+                <option value="Mayo"></option>
+                <option value="Junio"></option>
+                <option value="Julio"></option>
+                <option value="Agosto"></option>
+                <option value="Septiembre"></option>
+                <option value="Octubre"></option>
+                <option value="Noviembre"></option>
+                <option value="Diciembre"></option>
+              </datalist>
+            </div>
+
+            <div class="field">
+              <label for="dia_ingr">Día de ingreso</label>
+              <input type="number" id="dia_ingr" name="dia_ingr" min="1" max="31" step="1" required>
+            </div>
+
+            <div class="field full-width">
+              <label for="fecha_ingr">Fecha de ingreso</label>
+              <input type="date" id="fecha_ingr" name="fecha_ingr" required>
+              <span class="hint">Formato enviado a la API: AAAA-MM-DD</span>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-submit" class="btn-primary">Predecir riesgo</button>
+            <button type="reset" class="btn-secondary">Limpiar formulario</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ============================== RESULTADOS ============================== -->
+      <section class="panel" aria-labelledby="result-title">
+        <div class="panel-header">
+          <h2 id="result-title">Resultado de Inferencia</h2>
+        </div>
+
+        <!-- Línea de estado -->
+        <p class="status-line" id="status-line" data-state="idle">
+          Esperando datos...
+        </p>
+
+        <!-- Tarjeta de resultado exitoso -->
+        <div class="result-card hidden" id="result-card">
+          <span class="muted">Probabilidad de mortalidad</span>
+          <p class="result-proba" id="result-proba">0.00%</p>
+          <span class="risk-badge" id="risk-badge">—</span>
+
+          <dl class="result-meta">
+            <dt>Modelo utilizado</dt>
+            <dd id="result-model">—</dd>
+          </dl>
+        </div>
+
+        <!-- Caja de error -->
+        <div class="error-box hidden" id="error-box">
+          <h3>Error en la solicitud</h3>
+          <p id="error-message"></p>
+          <ul id="error-detail-list"></ul>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Interfaz de demostración — consume la API local en
+      <code>http://127.0.0.1:8000/api/v1/predict/riesgo-mortalidad</code>.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
