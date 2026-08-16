@@ -192,8 +192,6 @@ class PacienteInput(BaseModel):
     mes_ingr: str = Field(..., description="Mes de ingreso hospitalario")
     dia_ingr: int = Field(..., ge=1, le=31, description="Día de ingreso hospitalario")
     fecha_ingr: str = Field(..., description="Fecha de ingreso, formato YYYY-MM-DD")
-    cap221rx: str = Field(..., description="Código de capítulo CIE (agrupación de 221) del diagnóstico")
-    cau221rx: str = Field(..., description="Código de causa CIE (agrupación de 221) del diagnóstico")
 
     class Config:
         json_schema_extra = {
@@ -218,8 +216,6 @@ class PacienteInput(BaseModel):
                 "mes_ingr": 3,
                 "dia_ingr": 14,
                 "fecha_ingr": "2024-03-14",
-                "cap221rx": "IX",
-                "cau221rx": "I219",
             }
         }
 

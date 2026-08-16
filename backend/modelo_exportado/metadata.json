@@ -1,0 +1,37 @@
+{
+  "nombre_modelo": "Regresión Logística",
+  "formato_modelo": "joblib",
+  "requiere_reshape_features_1": false,
+  "n_features_tras_preprocesamiento": 182,
+  "umbral_decision": 0.5,
+  "metricas_test": {
+    "recall": 0.7605077574047955,
+    "precision": 0.041960436413441035,
+    "f1": 0.07953271579444215,
+    "pr_auc": 0.07016117388384166,
+    "auc_roc": 0.8093001444074345,
+    "accuracy": 0.7245270025691508
+  },
+  "columnas_entrada_crudas_esperadas": [
+    "prov_ubi",
+    "cant_ubi",
+    "area_ubi",
+    "clase",
+    "tipo",
+    "entidad",
+    "sector",
+    "nac_pac",
+    "sexo",
+    "cod_edad",
+    "edad",
+    "etnia",
+    "tipo_seg",
+    "dis_pac",
+    "prov_res",
+    "cant_res",
+    "area_res",
+    "mes_ingr",
+    "dia_ingr",
+    "fecha_ingr"
+  ]
+}
