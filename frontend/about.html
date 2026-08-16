@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Documentación — Predictor de Riesgo de Mortalidad Hospitalaria</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentación — Predictor de Riesgo de Mortalidad Hospitalaria</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -13,11 +13,12 @@
     <div class="brand">
       <p class="brand-title">
         Predictor de Riesgo de Mortalidad Hospitalaria
-        <span>Modelo de IA sobre datos de egresos hospitalarios</span>
+        <span>Modelo de Inteligencia Artificial sobre datos de egresos hospitalarios (INEC 2024)</span>
       </p>
     </div>
     <nav class="main-nav">
       <a href="index.html">Predictor</a>
+      <a href="stats.html">Estadísticas y Patrones</a>
       <a href="about.html" aria-current="page">Documentación</a>
     </nav>
   </header>
@@ -25,141 +26,182 @@
   <main>
     <article class="doc-content">
 
-      <h1>Acerca del proyecto</h1>
+      <h1>Documentación y Guía del Usuario</h1>
       <p>
-        Esta interfaz representa un sistema experimental diseñado para estimar la
+        Esta plataforma representa un sistema de apoyo a la decisión médica diseñado para estimar la
         <strong>probabilidad de mortalidad intrahospitalaria</strong> de un paciente. 
-        Las inferencias se realizan evaluando exclusivamente la información temprana disponible al momento 
-        del ingreso al establecimiento de salud, tal como factores demográficos, ubicación, tipo de 
-        establecimiento y modalidad de aseguramiento. 
-      </p>
-      <p>
-        El modelo fue entrenado utilizando el registro histórico de Egresos Hospitalarios del Ecuador (INEC). 
-        El propósito de la herramienta es servir como un recurso predictivo de apoyo al triaje y priorización 
-        de pacientes, contribuyendo a la optimización de los recursos médicos desde el minuto cero.
+        Las inferencias se realizan evaluando exclusivamente la información objetiva disponible al momento 
+        del ingreso al establecimiento de salud.
       </p>
 
       <div class="callout">
-        <strong>Nota:</strong> Este resultado es una estimación estadística basada en patrones de datos 
-        históricos generada por algoritmos de Machine Learning. En ningún caso constituye un 
-        diagnóstico clínico o sustituye la valoración de un profesional médico certificado.
+        <strong>Nota Institucional:</strong> Este resultado es una estimación estadística basada en el registro oficial de 
+        1,132,667 egresos del Instituto Nacional de Estadística y Censos (INEC) del año 2024. Su propósito es la priorización 
+        en triaje hospitalario y en ningún caso sustituye el criterio o diagnóstico de un profesional médico certificado.
       </div>
 
       <hr>
 
-      <h2>Guía de Uso</h2>
-      <ol>
-        <li>
-          Navegue hacia la pestaña <a href="index.html">Predictor</a> en el menú superior.
-        </li>
-        <li>
-          Para una demostración rápida, utilice el botón <strong>«Cargar datos de prueba»</strong>. Esto 
-          inyectará un caso simulado válido dentro de todos los campos requeridos del formulario.
-        </li>
-        <li>
-          Para realizar pruebas masivas, utilice el botón <strong>«Cargar archivo JSON»</strong>
-          para subir un lote de datos estructurados:
-          <ul>
-            <li>
-              Si el archivo contiene un <strong>objeto individual</strong>
-              (<code>{ ... }</code>), los datos poblarán el formulario de forma inmediata.
-            </li>
-            <li>
-              Si el archivo contiene un <strong>arreglo de múltiples pacientes</strong>
-              (<code>[{ ... }, { ... }]</code>), se habilitará una tabla de previsualización. 
-              Puede interactuar con cualquier fila para poblar el formulario con ese registro específico, o 
-              utilizar el botón <strong>«Seleccionar paciente al azar»</strong>.
-            </li>
-          </ul>
-        </li>
-        <li>
-          Haga clic en <strong>«Predecir riesgo»</strong>. El panel lateral cambiará su estado a 
-          <em>«Procesando...»</em> mientras el modelo remoto procesa el vector de características.
-        </li>
-        <li>
-          Tras una ejecución exitosa, la interfaz presentará la probabilidad de mortalidad del paciente. 
-          Si la estimación supera el umbral matemático definido, se activará una bandera de 
-          <span class="risk-badge riesgo-alto" style="font-size:0.7rem;">Riesgo alto</span>.
-        </li>
-        <li>
-          Si los datos enviados no cumplen con los esquemas de validación del sistema, el servidor 
-          rechazará la solicitud (HTTP 422 Unprocessable Entity) y se detallarán los campos con errores en rojo.
-        </li>
-      </ol>
-
-      <hr>
-
-      <h2>Arquitectura Técnica</h2>
+      <h2>Guía de Campos del Formulario de Ingreso</h2>
       <p>
-        La solución está implementada bajo una arquitectura Cliente-Servidor desacoplada. El cliente 
-        es una interfaz estática ligera que se comunica mediante solicitudes HTTP asíncronas con una API 
-        RESTful que aloja los artefactos binarios del modelo predictivo.
+        A continuación se detalla el significado, propósito y opciones de cada uno de los campos que se completan en el formulario de admisión:
       </p>
 
       <table class="tech-table">
         <thead>
           <tr>
+            <th>Campo del Formulario</th>
+            <th>Opciones / Tipo de Dato</th>
+            <th>Significado y Utilidad en la Evaluación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Provincia del establecimiento</strong></td>
+            <td>24 provincias del Ecuador</td>
+            <td>Provincia geográfica donde está ubicado el centro de salud. Refleja la capacidad y distribución de recursos hospitalarios por región.</td>
+          </tr>
+          <tr>
+            <td><strong>Cantón del establecimiento</strong></td>
+            <td>Cantones del Ecuador</td>
+            <td>Cantón específico donde se encuentra el hospital. Permite identificar centros con mayor concentración de especialistas e infraestructura.</td>
+          </tr>
+          <tr>
+            <td><strong>Área del establecimiento</strong></td>
+            <td>Urbana / Rural</td>
+            <td>Diferencia entre hospitales en zonas urbanas con mayor equipamiento frente a unidades rurales de primer nivel.</td>
+          </tr>
+          <tr>
+            <td><strong>Clase de establecimiento</strong></td>
+            <td>Hospital general, básico, de especialidades, geriátrico, etc.</td>
+            <td>Nivel de resolución del centro. Los hospitales de especialidades atienden casos de alta complejidad con camas de terapia intensiva, mientras los básicos atienden casos primarios.</td>
+          </tr>
+          <tr>
+            <td><strong>Tipo de atención</strong></td>
+            <td>Agudo / Crónico / Sin tipo</td>
+            <td>
+              Define la naturaleza de la hospitalización:
+              <br>• <strong>Agudo:</strong> Pacientes con patologías repentinas o de corta duración (urgencias, cirugías agudas, traumatismos).
+              <br>• <strong>Crónico:</strong> Pacientes con enfermedades de larga evolución o degenerativas (insuficiencia renal, cáncer avanzado, secuelas de ACV), quienes presentan mayor vulnerabilidad basal.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Entidad responsable</strong></td>
+            <td>MSP, IESS, Fuerzas Armadas, Policía, Privados, Junta de Beneficencia, etc.</td>
+            <td>Institución que administra el establecimiento. Captura diferencias en protocolos de atención y disponibilidad de insumos.</td>
+          </tr>
+          <tr>
+            <td><strong>Sector</strong></td>
+            <td>Público / Privado con fines de lucro / Privado sin fines de lucro</td>
+            <td>Régimen administrativo y de financiamiento del establecimiento de salud.</td>
+          </tr>
+          <tr>
+            <td><strong>Nacionalidad</strong></td>
+            <td>Ecuatoriano/a / Extranjero/a</td>
+            <td>Permite evaluar posibles barreras de acceso al sistema formal de salud en pacientes migrantes.</td>
+          </tr>
+          <tr>
+            <td><strong>Sexo</strong></td>
+            <td>Mujer / Hombre</td>
+            <td>Dimensión biológica asociada a la prevalencia diferencial de ciertas patologías cardiovasculares y metabólicas.</td>
+          </tr>
+          <tr>
+            <td><strong>Código de edad (Unidad)</strong></td>
+            <td>Años, Meses, Días, Horas</td>
+            <td>
+              Indica en qué unidad temporal se mide la edad. En salud es fundamental porque un recién nacido en estado crítico puede ingresar con 12 horas o 15 días de vida, lo cual requiere una escala distinta a la de un adulto.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Edad</strong></td>
+            <td>Número entero (0 a 115)</td>
+            <td>Valor numérico de la edad en la unidad seleccionada. El sistema unifica automáticamente el cálculo para evaluar desde recién nacidos hasta adultos mayores.</td>
+          </tr>
+          <tr>
+            <td><strong>Etnia</strong></td>
+            <td>Mestizo/a, Indígena, Afroecuatoriano/a, Blanco/a, Montubio/a, etc.</td>
+            <td>Autoidentificación étnica del paciente para registrar determinantes sociodemográficos de salud.</td>
+          </tr>
+          <tr>
+            <td><strong>Tipo de seguro</strong></td>
+            <td>IESS general, IESS campesino, ISSFA, ISSPOL, Seguro privado, Ninguno, Otro</td>
+            <td>Modalidad de cobertura de salud. La ausencia de seguro suele asociarse a consultas tardías en etapas más avanzadas de la patología.</td>
+          </tr>
+          <tr>
+            <td><strong>Discapacidad del paciente</strong></td>
+            <td>Ninguna, Física, Intelectual, Auditiva, Visual, Psicosocial</td>
+            <td>Condición de discapacidad que puede requerir asistencia especializada durante la internación.</td>
+          </tr>
+          <tr>
+            <td><strong>Provincia de residencia</strong></td>
+            <td>24 provincias del Ecuador</td>
+            <td>Provincia habitual donde vive el paciente. Permite detectar traslados interprovinciales por derivación médica.</td>
+          </tr>
+          <tr>
+            <td><strong>Cantón de residencia</strong></td>
+            <td>Cantones del Ecuador</td>
+            <td>
+              Cantón donde habita el paciente. Al compararse con el cantón del hospital, modela la distancia de desplazamiento: pacientes que deben viajar desde cantones rurales a hospitales urbanos suelen llegar en fases más complejas.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Área de residencia</strong></td>
+            <td>Urbana / Rural</td>
+            <td>Zona de procedencia del paciente, reflejando tiempos de traslado y factores de acceso oportuno.</td>
+          </tr>
+          <tr>
+            <td><strong>Mes de ingreso</strong></td>
+            <td>Enero a Diciembre</td>
+            <td>Permite evaluar patrones de estacionalidad (ej. picos de afecciones respiratorias en meses lluviosos).</td>
+          </tr>
+          <tr>
+            <td><strong>Día de ingreso</strong></td>
+            <td>Día del mes (1 a 31)</td>
+            <td>Día calendario en el que el paciente ingresó al establecimiento hospitalario.</td>
+          </tr>
+          <tr>
+            <td><strong>Fecha de ingreso</strong></td>
+            <td>Fecha completa (AAAA-MM-DD)</td>
+            <td>Fecha exacta que el sistema utiliza para determinar el día de la semana (lunes a domingo), evaluando patrones de atención en fines de semana o feriados.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <h2>Resumen del Modelo de Inteligencia Artificial</h2>
+      <table class="tech-table">
+        <thead>
+          <tr>
             <th>Componente</th>
-            <th>Tecnologías</th>
+            <th>Detalle</th>
             <th>Descripción</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Cliente Web (Frontend)</td>
-            <td>Vanilla HTML5, CSS3, JS Nativo</td>
-            <td>Garantiza una interfaz ultraligera, libre de dependencias o compiladores. 
-            Gestiona la captura de los inputs, orquesta la carga de archivos locales vía <code>FileReader API</code> y realiza 
-            las peticiones <code>fetch()</code> a la API.</td>
+            <td>Modelo Principal</td>
+            <td>Regresión Logística Balanceada</td>
+            <td>Algoritmo entrenado con ponderación de costos para maximizar la sensibilidad médica (Recall = 75.23% y ROC-AUC = 0.8078), priorizando la detección de pacientes en riesgo crítico.</td>
           </tr>
           <tr>
-            <td>Capa de Servicios (Backend)</td>
-            <td>FastAPI, Uvicorn, Pydantic</td>
-            <td>Expone el servicio de inferencia en <code>/api/v1/predict/riesgo-mortalidad</code>. 
-            Garantiza validaciones de tipos estrictas y gestiona la carga en memoria de los artefactos predictivos.</td>
+            <td>Base de Entrenamiento</td>
+            <td>INEC Egresos Hospitalarios 2024</td>
+            <td>1,132,667 registros a nivel nacional divididos en 80% de entrenamiento balanceado con técnica SMOTE y 20% de evaluación en pacientes reales.</td>
           </tr>
           <tr>
-            <td>Ingeniería de Características</td>
-            <td>Scikit-learn, Imbalanced-learn</td>
-            <td>Aplica un <code>Pipeline</code> encapsulado. Normaliza unidades de medida heterogéneas (ej. edad en horas vs años), aplica imputación estadística a variables faltantes, balancea las clases mediante <code>SMOTE</code> y codifica la matriz de datos con <code>OneHotEncoder</code>.
-            <br><br>
-            <strong>Nota Crítica:</strong> Se descartaron por completo las variables de diagnóstico definitivo (Causas CIE-10) del dataset original para evitar fenómenos de <em>Data Leakage</em> (fuga de información), garantizando que el modelo opere únicamente con datos reales de ingreso.</td>
-          </tr>
-          <tr>
-            <td>Modelado Inicial</td>
-            <td>Perceptrón Simple, MLP, CNN 1D y LSTM</td>
-            <td>Durante la experimentación, se ajustaron y evaluaron múltiples arquitecturas bajo optimización de hiperparámetros automatizada para encontrar la mejor aproximación al problema.</td>
-          </tr>
-          <tr>
-            <td>Modelo en Producción</td>
-            <td>Regresión Logística</td>
-            <td>El algoritmo de <strong>Regresión Logística</strong> fue seleccionado como el modelo final en producción debido a que maximizó la métrica <em>Recall</em> de la clase minoritaria, 
-            priorizando la sensibilidad clínica para asegurar la detección de la mayor cantidad de pacientes en verdadero riesgo, superando la complejidad de las redes neuronales en este escenario tabular específico.</td>
+            <td>Tiempo de Respuesta</td>
+            <td>Menos de 5 milisegundos</td>
+            <td>Cálculo de probabilidad instantáneo a través de la API para soporte en tiempo real en admisión.</td>
           </tr>
         </tbody>
       </table>
-
-      <h3>Formato de Comunicación</h3>
-      <p>
-        El frontend envía un <code>POST</code> con el cuerpo en formato JSON
-        hacia la API, compuesto por un vector estricto de 20 campos por paciente, correspondientes a: 
-        ubicación y tipo del establecimiento, datos demográficos, aseguramiento del paciente,
-        residencia, y fecha de ingreso. 
-        <br><br>
-        La respuesta exitosa incluye tres campos: la probabilidad calculada (<code>proba</code>), la bandera booleana de riesgo alto
-        (<code>riesgo_alto</code>, verdadera si <code>proba</code> supera el
-        umbral de decisión configurado en el servidor) y el nombre del algoritmo
-        usado (<code>modelo_usado</code>). Si algún campo no cumple el esquema establecido, 
-        la API responde con código <code>422</code> y el listado de errores de validación estructurados.
-      </p>
 
     </article>
   </main>
 
   <footer class="site-footer">
-    <p>Interfaz de demostración — consume la API local en
-      <code>http://127.0.0.1:8000/api/v1/predict/riesgo-mortalidad</code>.
-    </p>
+    <p>Predictor de Riesgo de Mortalidad Hospitalaria — FIEC / ESPOL Grupo #3 (Leonardo Zambrano, Javier Murillo, Joel Guamaní)</p>
   </footer>
 
 </body>

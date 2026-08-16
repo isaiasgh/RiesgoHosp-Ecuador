@@ -1,6 +1,7 @@
 /* ==========================================================================
    app.js
    Lógica del Predictor de Riesgo de Mortalidad Hospitalaria.
+   Grupo #3 - Inteligencia Artificial (FIEC / ESPOL)
    ========================================================================== */
 
 (function () {
@@ -17,11 +18,34 @@
     mes_ingr: "string", dia_ingr: "int", fecha_ingr: "string"
   };
 
+  const FIELD_LABELS = {
+    prov_ubi: "Provincia del establecimiento",
+    cant_ubi: "Cantón del establecimiento",
+    area_ubi: "Área del establecimiento",
+    clase: "Clase de establecimiento",
+    tipo: "Tipo de atención",
+    entidad: "Entidad",
+    sector: "Sector",
+    nac_pac: "Nacionalidad",
+    sexo: "Sexo",
+    cod_edad: "Código de edad",
+    edad: "Edad",
+    etnia: "Etnia",
+    tipo_seg: "Tipo de seguro",
+    dis_pac: "Discapacidad del paciente",
+    prov_res: "Provincia de residencia",
+    cant_res: "Cantón de residencia",
+    area_res: "Área de residencia",
+    mes_ingr: "Mes de ingreso",
+    dia_ingr: "Día de ingreso",
+    fecha_ingr: "Fecha de ingreso"
+  };
+
   const SAMPLE_PAYLOAD = {
     prov_ubi: "Loja", cant_ubi: "Loja", area_ubi: "Urbana",
     clase: "Hospital general", tipo: "Agudo", entidad: "Privados con fines de lucro",
     sector: "Privado con fines de lucro", nac_pac: "Ecuatoriano/a", sexo: "Mujer",
-    cod_edad: "Años (1 a 115 años de edad)", edad: 30, etnia: "Mestizo/a",
+    cod_edad: "Años (1 a 115 años de edad)", edad: 78, etnia: "Mestizo/a",
     tipo_seg: "Ninguno", dis_pac: "Ninguna", prov_res: "Zamora Chinchipe",
     cant_res: "Yantzaza", area_res: "Urbana", mes_ingr: "Marzo", dia_ingr: 2, fecha_ingr: "2024-03-02"
   };
@@ -41,11 +65,17 @@
   const resultCard = document.getElementById("result-card");
   const resultProba = document.getElementById("result-proba");
   const riskBadge = document.getElementById("risk-badge");
-  const resultModel = document.getElementById("result-model");
   const errorBox = document.getElementById("error-box");
   const errorMessage = document.getElementById("error-message");
   const errorDetailList = document.getElementById("error-detail-list");
   
+  // Elementos de Explicabilidad (CU-02) y Triaje
+  const triajeBox = document.getElementById("triaje-box");
+  const triajeTitle = document.getElementById("triaje-title");
+  const triajeText = document.getElementById("triaje-text");
+  const factorsList = document.getElementById("factors-list");
+  const btnPrintReport = document.getElementById("btn-print-report");
+
   // Referencias a los Datalists de provincias
   const provUbiList = document.getElementById("list_prov_ubi");
   const provResList = document.getElementById("list_prov_res");
@@ -60,9 +90,12 @@
   const COLUMNAS_PREFERIDAS = ["edad", "sexo", "prov_ubi", "tipo_seg", "clase", "resultado_real"];
 
   let pacientesCargados = [];
+  let ultimoPayloadEvaluado = null;
+  let ultimoResultadoEvaluado = null;
 
-  // Función para poblar los Datalist
+  // Función para poblar los Datalist de provincias
   function poblarDatalistProvincias(datalistEl) {
+    if (!datalistEl) return;
     PROVINCIAS_ECUADOR.forEach(function (provincia) {
       const option = document.createElement("option");
       option.value = provincia;
@@ -88,7 +121,7 @@
     llenarFormulario(SAMPLE_PAYLOAD);
     ocultarTablaPacientes();
     ocultarHintAleatorio();
-    setStatus("idle", "Datos de prueba cargados. Listo para predecir.");
+    setStatus("idle", "Datos de prueba cargados (Mujer, 78 años, Loja). Listo para predecir.");
     ocultarResultado();
     ocultarError();
   });
@@ -98,17 +131,168 @@
     statusLine.textContent = texto;
   }
 
-  function mostrarResultado(data) {
+  // =========================================================================
+  // Explicabilidad de Factores de Riesgo (CU-02)
+  // =========================================================================
+  function renderizarFactoresRiesgo(payload, esRiesgoAlto, proba) {
+    factorsList.innerHTML = "";
+    const factores = [];
+
+    const edadNum = Number(payload.edad);
+    const unidadEdad = String(payload.cod_edad || "");
+
+    // 1. Evaluación de Edad
+    if (unidadEdad.includes("Años") || unidadEdad.includes("Anos") || unidadEdad === "1") {
+      if (edadNum >= 75) {
+        factores.push({
+          tipo: "danger",
+          icon: "[Alerta]",
+          titulo: `Edad Geriátrica Avanzada (${edadNum} años)`,
+          desc: "Mayor vulnerabilidad fisiológica basal y disminución de reserva funcional."
+        });
+      } else if (edadNum >= 60) {
+        factores.push({
+          tipo: "warning",
+          icon: "[Vulnerabilidad]",
+          titulo: `Adulto Mayor (${edadNum} años)`,
+          desc: "Incremento moderado en la probabilidad de complicaciones intrahospitalarias."
+        });
+      } else if (edadNum <= 5) {
+        factores.push({
+          tipo: "warning",
+          icon: "[Vulnerabilidad]",
+          titulo: `Primera Infancia (${edadNum} años)`,
+          desc: "Inmadurez del sistema inmunitario y susceptibilidad a descompensación rápida."
+        });
+      } else {
+        factores.push({
+          tipo: "success",
+          icon: "[Favorable]",
+          titulo: `Rango Etario Adulto Joven (${edadNum} años)`,
+          desc: "Factor protector: mayor tolerancia basal a intervenciones clínicas."
+        });
+      }
+    } else {
+      // Meses, Días u Horas (Neonatal / Lactante)
+      factores.push({
+        tipo: "danger",
+        icon: "[Alerta]",
+        titulo: `Paciente Neonatal / Lactante (${edadNum} ${unidadEdad})`,
+        desc: "Condición de alto cuidado crítico por susceptibilidad fisiológica extrema."
+      });
+    }
+
+    // 2. Cobertura de Seguro
+    const seguro = String(payload.tipo_seg || "").toLowerCase();
+    if (seguro.includes("ninguno") || seguro.includes("otro")) {
+      factores.push({
+        tipo: "warning",
+        icon: "[Vulnerabilidad]",
+        titulo: "Sin Cobertura de Seguro Formal",
+        desc: "Frecuentemente asociado con consultas en fases más avanzadas de la enfermedad."
+      });
+    } else {
+      factores.push({
+        tipo: "success",
+        icon: "[Favorable]",
+        titulo: `Aseguramiento Activo (${payload.tipo_seg})`,
+        desc: "Acceso facilitado a red integral de prestaciones e insumos."
+      });
+    }
+
+    // 3. Complejidad Institucional y Tipo de Atención
+    const clase = String(payload.clase || "").toLowerCase();
+    const tipo = String(payload.tipo || "").toLowerCase();
+    if (tipo.includes("crónico") || tipo.includes("cronico")) {
+      factores.push({
+        tipo: "danger",
+        icon: "[Alerta]",
+        titulo: "Atención de Tipo Crónica",
+        desc: "Presencia de patologías de base de larga evolución o deterioro progresivo."
+      });
+    }
+
+    if (clase.includes("básico") || clase.includes("basico") || clase.includes("geriátrico") || clase.includes("geriatrico")) {
+      factores.push({
+        tipo: "warning",
+        icon: "[Contexto]",
+        titulo: `Capacidad del Centro (${payload.clase})`,
+        desc: "Recursos de terapia intensiva y soporte especializado limitados en la unidad."
+      });
+    } else {
+      factores.push({
+        tipo: "success",
+        icon: "[Favorable]",
+        titulo: `Capacidad Resolutiva (${payload.clase})`,
+        desc: "Disponibilidad de especialidades médicas y soporte quirúrgico avanzado."
+      });
+    }
+
+    // 4. Ubicación Territorial
+    const areaRes = String(payload.area_res || "").toLowerCase();
+    const areaUbi = String(payload.area_ubi || "").toLowerCase();
+    if (areaRes.includes("rural") || areaUbi.includes("rural")) {
+      factores.push({
+        tipo: "warning",
+        icon: "[Contexto]",
+        titulo: "Procedencia o Ubicación Rural",
+        desc: "Factores de distancia geográfica y posibles demoras en el acceso oportuno."
+      });
+    }
+
+    // 5. Discapacidad
+    const dis = String(payload.dis_pac || "").toLowerCase();
+    if (dis && !dis.includes("ninguna") && !dis.includes("sin información")) {
+      factores.push({
+        tipo: "warning",
+        icon: "[Vulnerabilidad]",
+        titulo: `Condición de Discapacidad (${payload.dis_pac})`,
+        desc: "Requiere protocolos adaptados y asistencia multidisciplinaria en internación."
+      });
+    }
+
+    // Renderizar en el DOM
+    factores.forEach(function (f) {
+      const li = document.createElement("li");
+      li.className = "factor-item factor-" + f.tipo;
+      li.innerHTML = `
+        <span class="factor-tag factor-tag-${f.tipo}">${f.icon}</span>
+        <div class="factor-content">
+          <strong>${f.titulo}</strong>
+          <p>${f.desc}</p>
+        </div>
+      `;
+      factorsList.appendChild(li);
+    });
+
+    // Configurar Recomendación de Triaje
+    if (esRiesgoAlto) {
+      triajeBox.className = "triaje-box triaje-box-alto";
+      triajeTitle.textContent = "Alerta Médica: Prioridad I / Cuidados Especiales";
+      triajeText.textContent = "Se recomienda monitorización hemodinámica continua, valoración por médico especialista en admisión y priorización de cama en unidad de cuidados intensivos o intermedios.";
+    } else {
+      triajeBox.className = "triaje-box triaje-box-bajo";
+      triajeTitle.textContent = "Evolución Favorable: Prioridad III / Observación Estándar";
+      triajeText.textContent = "El perfil multivariable del paciente indica bajo riesgo basal de mortalidad intrahospitalaria. Continuar con plan de internación estándar y seguimiento de rutina.";
+    }
+  }
+
+  function mostrarResultado(data, payload) {
+    ultimoPayloadEvaluado = payload;
+    ultimoResultadoEvaluado = data;
+
     const proba = typeof data.proba === "number" ? data.proba : Number(data.proba);
     const esRiesgoAlto = Boolean(data.riesgo_alto);
 
     resultProba.textContent = (proba * 100).toFixed(2) + "%";
 
-    riskBadge.textContent = esRiesgoAlto ? "Riesgo alto" : "Riesgo bajo";
+    riskBadge.textContent = esRiesgoAlto ? "Riesgo Alto (Alerta)" : "Riesgo Bajo (Favorable)";
     riskBadge.classList.remove("riesgo-alto", "riesgo-bajo");
     riskBadge.classList.add(esRiesgoAlto ? "riesgo-alto" : "riesgo-bajo");
 
-    resultModel.textContent = data.modelo_usado || "No especificado";
+    // Explicabilidad y Triaje (CU-02)
+    renderizarFactoresRiesgo(payload, esRiesgoAlto, proba);
+
     resultCard.classList.remove("hidden");
   }
 
@@ -116,14 +300,32 @@
     resultCard.classList.add("hidden");
   }
 
+  function obtenerNombreAmigableCampo(campoClave) {
+    return FIELD_LABELS[campoClave] || campoClave;
+  }
+
   function mostrarError(mensajePrincipal, detalles) {
     errorMessage.textContent = mensajePrincipal;
     errorDetailList.innerHTML = "";
     if (Array.isArray(detalles)) {
       detalles.forEach(function (item) {
-        const campo = Array.isArray(item.loc) ? item.loc.join(" → ") : "campo";
+        let claveCampo = "campo";
+        if (Array.isArray(item.loc) && item.loc.length > 0) {
+          claveCampo = item.loc[item.loc.length - 1];
+        } else if (typeof item.loc === "string") {
+          claveCampo = item.loc;
+        }
+        const nombreVisible = obtenerNombreAmigableCampo(claveCampo);
+        
+        let textoMensaje = item.msg || "Valor no válido";
+        if (textoMensaje.includes("required") || textoMensaje.includes("obligatorio") || textoMensaje.includes("missing")) {
+          textoMensaje = "Este campo es obligatorio para la evaluación.";
+        } else if (textoMensaje.includes("integer") || textoMensaje.includes("entero")) {
+          textoMensaje = "Debe ser un número entero válido.";
+        }
+
         const li = document.createElement("li");
-        li.textContent = campo + ": " + item.msg;
+        li.textContent = nombreVisible + ": " + textoMensaje;
         errorDetailList.appendChild(li);
       });
     }
@@ -166,7 +368,8 @@
 
     columnas.forEach(function (col) {
       const th = document.createElement("th");
-      th.textContent = col === "prov_ubi" ? "PROVINCIA" : col === "resultado_real" ? "RESULTADO" : col.replace("_", " ");
+      const nombreCol = col === "prov_ubi" ? "PROVINCIA" : col === "resultado_real" ? "RESULTADO REAL" : obtenerNombreAmigableCampo(col).toUpperCase();
+      th.textContent = nombreCol;
       patientsTableHead.appendChild(th);
     });
 
@@ -223,13 +426,13 @@
     const numeroPaciente = index + 1;
     if (Object.prototype.hasOwnProperty.call(paciente, "resultado_real")) {
       mostrarHintAleatorio(
-        "Paciente #" + numeroPaciente + " seleccionado — Resultado histórico: " +
+        "Paciente #" + numeroPaciente + " cargado — Desenlace histórico registrado por INEC: " +
         formatearResultadoReal(paciente.resultado_real)
       );
     } else {
       mostrarHintAleatorio("Paciente #" + numeroPaciente + " seleccionado.");
     }
-    setStatus("idle", "Datos del paciente #" + numeroPaciente + " cargados. Modifica o envía a predecir.");
+    setStatus("idle", "Datos del paciente #" + numeroPaciente + " cargados. Presiona «Predecir riesgo».");
   }
 
   function manejarArchivoJSON(event) {
@@ -248,71 +451,56 @@
       }
 
       ocultarError();
-      ocultarResultado();
 
       if (Array.isArray(datos)) {
         if (datos.length === 0) {
-          setStatus("error", "El archivo contiene un array vacío.");
-          mostrarError("El archivo JSON no tiene pacientes para mostrar.", null);
-          ocultarTablaPacientes();
+          setStatus("error", "El arreglo JSON está vacío.");
+          mostrarError("El archivo contiene una lista sin registros.", null);
           return;
         }
-
         pacientesCargados = datos;
         renderTablaPacientes(pacientesCargados);
         mostrarTablaPacientes();
-        ocultarHintAleatorio();
-        setStatus("idle", "Se cargaron " + pacientesCargados.length + " pacientes. Selecciona uno en la tabla o usa el botón de azar.");
-
-      } else if (datos && typeof datos === "object") {
-        pacientesCargados = [];
+        seleccionarPaciente(0);
+        setStatus("idle", "Se cargaron " + datos.length + " pacientes de prueba. Selecciona uno para predecir.");
+      } else if (typeof datos === "object" && datos !== null) {
+        pacientesCargados = [datos];
         ocultarTablaPacientes();
-        ocultarHintAleatorio();
         llenarFormulario(datos);
-        setStatus("idle", "Datos del paciente cargados desde archivo JSON.");
-
+        ocultarHintAleatorio();
+        setStatus("idle", "Paciente cargado desde archivo JSON. Listo para predecir.");
       } else {
-        setStatus("error", "Formato de archivo no soportado.");
-        mostrarError("El JSON debe ser un objeto { } o un array de objetos [ ].", null);
+        setStatus("error", "Estructura JSON no reconocida.");
+        mostrarError("El archivo debe contener un objeto o una lista de pacientes.", null);
       }
     };
 
     lector.onerror = function () {
-      setStatus("error", "No se pudo leer el archivo.");
-      mostrarError("Ocurrió un error al leer el archivo seleccionado.", null);
+      setStatus("error", "Error al leer el archivo.");
+      mostrarError("No se pudo leer el archivo seleccionado.", null);
     };
 
-    lector.readAsText(archivo);
-    event.target.value = "";
+    lector.readAsText(archivo, "UTF-8");
   }
 
   fileInput.addEventListener("change", manejarArchivoJSON);
 
   btnRandomPatient.addEventListener("click", function () {
-    if (pacientesCargados.length === 0) return;
+    if (!pacientesCargados || pacientesCargados.length === 0) return;
     const indiceAleatorio = Math.floor(Math.random() * pacientesCargados.length);
     seleccionarPaciente(indiceAleatorio);
   });
 
-  form.addEventListener("reset", function () {
-    ocultarHintAleatorio();
-    ocultarError();
-    ocultarResultado();
-    Array.from(patientsTableBody.children).forEach(function (fila) {
-      fila.classList.remove("selected-row");
-    });
-    setStatus("idle", "Esperando datos...");
-  });
-
   function recolectarPayload() {
     const payload = {};
+    const formData = new FormData(form);
     Object.keys(FIELD_TYPES).forEach(function (fieldName) {
-      const input = form.elements[fieldName];
-      const rawValue = input ? input.value : "";
-      if (FIELD_TYPES[fieldName] === "int") {
-        payload[fieldName] = parseInt(rawValue, 10);
+      const tipo = FIELD_TYPES[fieldName];
+      const valorCrudo = formData.get(fieldName);
+      if (tipo === "int") {
+        payload[fieldName] = valorCrudo !== null && valorCrudo !== "" ? parseInt(valorCrudo, 10) : NaN;
       } else {
-        payload[fieldName] = rawValue;
+        payload[fieldName] = valorCrudo !== null ? String(valorCrudo).trim() : "";
       }
     });
     return payload;
@@ -324,15 +512,18 @@
       const valor = payload[fieldName];
       const esNumero = FIELD_TYPES[fieldName] === "int";
       if (esNumero && Number.isNaN(valor)) {
-        camposInvalidos.push({ loc: ["body", fieldName], msg: "Debe ser un número entero válido" });
+        camposInvalidos.push({ loc: ["body", fieldName], msg: "Debe ser un número entero válido." });
       }
       if (!esNumero && (valor === undefined || valor === "")) {
-        camposInvalidos.push({ loc: ["body", fieldName], msg: "Este campo es obligatorio" });
+        camposInvalidos.push({ loc: ["body", fieldName], msg: "Este campo es obligatorio para la evaluación." });
       }
     });
     return camposInvalidos;
   }
 
+  // =========================================================================
+  // Envío del Formulario (Inferencia Asíncrona)
+  // =========================================================================
   form.addEventListener("submit", async function (event) {
     event.preventDefault(); 
     ocultarError();
@@ -342,13 +533,13 @@
     const erroresLocales = validarPayload(payload);
 
     if (erroresLocales.length > 0) {
-      setStatus("error", "Hay campos incompletos o inválidos.");
-      mostrarError("Revisa los siguientes campos antes de enviar:", erroresLocales);
+      setStatus("error", "Hay campos incompletos en el formulario.");
+      mostrarError("Por favor completa los siguientes campos antes de solicitar la predicción:", erroresLocales);
       return;
     }
 
     btnSubmit.disabled = true;
-    setStatus("loading", "Procesando predicción en el servidor...");
+    setStatus("loading", "Procesando inferencia con el modelo de Inteligencia Artificial...");
 
     try {
       const response = await fetch(API_URL, {
@@ -358,12 +549,12 @@
       });
 
       if (!response.ok) {
-        let mensaje = "La API respondió con el código " + response.status + ".";
+        let mensaje = "No se pudo procesar la solicitud.";
         let detalles = null;
         try {
           const errorData = await response.json();
           if (response.status === 422 && Array.isArray(errorData.detail)) {
-            mensaje = "Error de validación (422): revisa los campos indicados.";
+            mensaje = "Por favor verifica los siguientes campos del formulario:";
             detalles = errorData.detail;
           } else if (typeof errorData.detail === "string") {
             mensaje = errorData.detail;
@@ -377,19 +568,32 @@
       }
 
       const data = await response.json();
-      setStatus("success", "Predicción generada correctamente.");
-      mostrarResultado(data);
+      setStatus("success", "Predicción generada con éxito.");
+      mostrarResultado(data, payload);
       
       document.getElementById("result-title").scrollIntoView({ behavior: "smooth", block: "start" });
 
     } catch (networkError) {
-      setStatus("error", "No se pudo conectar con la API.");
-      mostrarError("Error de red: verifica que el backend de FastAPI esté corriendo en " + API_URL + ".", null);
+      setStatus("error", "No se pudo conectar con el servidor.");
+      mostrarError("Error de conexión: verifica que el servidor esté activo en " + API_URL + ".", null);
       document.getElementById("result-title").scrollIntoView({ behavior: "smooth", block: "start" });
     } finally {
       btnSubmit.disabled = false;
     }
   });
+
+  // =========================================================================
+  // Botón Descargar / Imprimir Reporte (CU-04)
+  // =========================================================================
+  if (btnPrintReport) {
+    btnPrintReport.addEventListener("click", function () {
+      if (!ultimoPayloadEvaluado || !ultimoResultadoEvaluado) {
+        alert("Primero genera una predicción para poder exportar el reporte.");
+        return;
+      }
+      window.print();
+    });
+  }
 
   setStatus("idle", "Esperando datos...");
 })();

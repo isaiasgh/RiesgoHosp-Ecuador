@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas y Patrones Históricos — Egresos Hospitalarios Ecuador</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================== ENCABEZADO / NAV ============================== -->
+  <header class="site-header">
+    <div class="brand">
+      <p class="brand-title">
+        Predictor de Riesgo de Mortalidad Hospitalaria
+        <span>Modelo de Inteligencia Artificial sobre datos de egresos hospitalarios del Ecuador (INEC 2024)</span>
+      </p>
+    </div>
+    <nav class="main-nav">
+      <a href="index.html">Predictor</a>
+      <a href="stats.html" aria-current="page">Estadísticas y Patrones</a>
+      <a href="about.html">Documentación</a>
+    </nav>
+  </header>
+
+  <main class="stats-main">
+    <div class="stats-container">
+
+      <div class="page-title-section">
+        <h1>Análisis de Patrones Históricos y Comparativa de Modelos</h1>
+        <p class="subtitle">
+          Evaluación epidemiológica y experimental basada en el registro consolidado de <strong>1,132,667 egresos hospitalarios</strong> del Instituto Nacional de Estadística y Censos (INEC) durante el año 2024.
+        </p>
+      </div>
+
+      <!-- ============================== KPI CARDS ============================== -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Egresos Analizados</span>
+          <p class="kpi-value">1,132,667</p>
+          <span class="kpi-sub">626 establecimientos en 24 provincias</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Supervivientes (Vivos)</span>
+          <p class="kpi-value text-success">1,114,943</p>
+          <span class="kpi-sub">98.44% de la población hospitalaria</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Fallecidos (Mortalidad)</span>
+          <p class="kpi-value text-danger">17,724</p>
+          <span class="kpi-sub">1.56% tasa basal de mortalidad</span>
+        </div>
+
+        <div class="kpi-card kpi-highlight">
+          <span class="kpi-label">Sensibilidad Modelo Seleccionado</span>
+          <p class="kpi-value text-primary">75.23%</p>
+          <span class="kpi-sub">Regresión Logística (ROC-AUC: 0.8078)</span>
+        </div>
+      </section>
+
+      <!-- ============================== SECCIÓN 1: DISTRIBUCIÓN ============================== -->
+      <section class="panel stats-panel">
+        <div class="panel-header">
+          <h2>1. Distribución del Desenlace y Desbalance de Clases</h2>
+        </div>
+        <div class="stats-grid-2">
+          <div class="chart-container">
+            <img src="assets/distribucion-variable-objetivo.png" alt="Distribución de Desenlace Hospitalario" class="responsive-chart">
+            <p class="chart-caption">Figura 1: Proporción de egresos vivos (98.44%) vs fallecidos (1.56%) en el registro nacional 2024.</p>
+          </div>
+          <div class="stats-text">
+            <h3>Hallazgos Epidemiológicos Clave</h3>
+            <ul class="stats-bullet-list">
+              <li><strong>Desbalance Extremo (1:63):</strong> Por cada paciente fallecido se registran aproximadamente 63 pacientes que egresan con vida.</li>
+              <li><strong>Impacto en el Modelado de IA:</strong> Modelos ingenuos que predicen "Vivo" para todos obtienen 98.44% de exactitud pero 0% de utilidad médica.</li>
+              <li><strong>Tratamiento con SMOTE:</strong> Se equilibró la distribución en entrenamiento a 891,954 casos por clase para forzar a los clasificadores a aprender patrones de riesgo crítico.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== SECCIÓN 2: CURVAS ROC ============================== -->
+      <section class="panel stats-panel">
+        <div class="panel-header">
+          <h2>2. Evaluación y Curvas ROC Comparativas (5 Familias de IA)</h2>
+        </div>
+        <div class="stats-grid-2">
+          <div class="chart-container">
+            <img src="assets/curvas-roc-comparacion-modelos.png" alt="Curvas ROC Comparativas de Modelos" class="responsive-chart">
+            <p class="chart-caption">Figura 2: Curvas ROC evaluadas sobre 226,534 pacientes nunca antes vistos (Conjunto de Prueba 20%).</p>
+          </div>
+          <div class="stats-text">
+            <h3>Análisis del Desempeño de los Modelos</h3>
+            <ul class="stats-bullet-list">
+              <li><strong>MLP (Red Neuronal Densa):</strong> Obtuvo el mayor <strong>ROC-AUC global (0.8351)</strong> y mejor PR-AUC (0.0831), demostrando alta capacidad para ordenar el riesgo probabilístico.</li>
+              <li><strong>Regresión Logística (Modelo Seleccionado):</strong> Alcanzó el mayor <strong>Recall (75.23%)</strong> con un ROC-AUC sólido de <strong>0.8078</strong> y tiempo de respuesta inferior a 5 milisegundos.</li>
+              <li><strong>Perceptrón Simple:</strong> Logró un Recall del 37.60% y ROC-AUC de 0.6729.</li>
+              <li><strong>CNN 1D y LSTM:</strong> Tuvieron dificultades para converger en el espacio de características tabulares sin sobre-sesgarse.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================== SECCIÓN 3: TABLA COMPARATIVA ============================== -->
+      <section class="panel stats-panel">
+        <div class="panel-header">
+          <h2>3. Tabla Oficial de Rendimiento Experimental</h2>
+        </div>
+        <div class="chart-container-full">
+          <img src="assets/tabla-comparacion-modelos.jpg" alt="Tabla Comparativa de Métricas" class="responsive-chart-full">
+          <p class="chart-caption">Tabla 1: Métricas de evaluación rigurosa sobre el 20% estratificado de test (INEC 2024).</p>
+        </div>
+      </section>
+
+      <!-- ============================== SECCIÓN 4: MATRICES DE CONFUSIÓN ============================== -->
+      <section class="panel stats-panel">
+        <div class="panel-header">
+          <h2>4. Matrices de Confusión por Modelo</h2>
+        </div>
+        <p class="muted">Visualización de aciertos, falsos positivos y falsos negativos evaluados en 226,534 casos de prueba:</p>
+        
+        <div class="confusion-grid">
+          <div class="confusion-item">
+            <h4>Regresión Logística (Seleccionado)</h4>
+            <img src="assets/regresion-logistica.png" alt="Matriz Regresión Logística">
+            <p class="matrix-summary">Recall: 75.23% | Detectó 2,667 fallecidos de 3,545</p>
+          </div>
+          <div class="confusion-item">
+            <h4>MLP (Keras)</h4>
+            <img src="assets/mlp.png" alt="Matriz MLP">
+            <p class="matrix-summary">ROC-AUC: 0.8351 | Mayor precisión y F1</p>
+          </div>
+          <div class="confusion-item">
+            <h4>Perceptrón Simple</h4>
+            <img src="assets/perceptron-simple.png" alt="Matriz Perceptrón Simple">
+            <p class="matrix-summary">Recall: 37.60% | Modelo lineal base</p>
+          </div>
+          <div class="confusion-item">
+            <h4>CNN 1D (Keras)</h4>
+            <img src="assets/cnn.png" alt="Matriz CNN 1D">
+            <p class="matrix-summary">Accuracy: 98.0% | Sesgo a clase mayoritaria</p>
+          </div>
+          <div class="confusion-item">
+            <h4>LSTM (Keras)</h4>
+            <img src="assets/lstm.png" alt="Matriz LSTM">
+            <p class="matrix-summary">Recall: 59.86% | Alta tasa de falsos positivos</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Predictor de Riesgo de Mortalidad Hospitalaria — FIEC / ESPOL Grupo #3 (Leonardo Zambrano, Javier Murillo, Joel Guamaní)</p>
+  </footer>
+
+</body>
+</html>
