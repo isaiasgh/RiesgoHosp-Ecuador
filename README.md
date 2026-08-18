@@ -47,15 +47,6 @@ El sistema fue entrenado y evaluado sobre el **censo nacional completo de 1,132,
 │   ├── style.css                                 # Estilos y reglas de impresión PDF (CU-04)
 │   ├── ejemplos_demo.json                        # Casos de prueba para carga interactiva
 │   └── assets/                                   # Gráficos oficiales de evaluación experimental
-├── diagramas_plantuml/                           # Diagramas UML de análisis y diseño
-│   ├── 01_casos_de_uso.puml                      # Casos de uso CU-01 a CU-04
-│   ├── 02_diagrama_estados.puml                  # Estados del paciente y prevención de Data Leakage
-│   ├── 03_diagrama_actividades.puml              # Proceso de triaje y predicción
-│   ├── 04_diagrama_clases_simplificado.puml      # Clases de diseño desacopladas
-│   ├── 05_diagrama_componentes_pipeline_simplificado.puml
-│   ├── 06_secuencia_cu01_cu02_inferencia.puml    # Secuencia de predicción
-│   └── 07_secuencia_cu03_cu04_reportes.puml      # Secuencia de estadísticas y PDF
-├── start_unix.sh                                 # Script de automatización para macOS/Linux
 ├── ejemplos_demo.json                            # 20 pacientes reales de prueba
 ├── requirements.txt                              # Dependencias completas del proyecto
 └── README.md                                     # Guía técnica y manual de despliegue

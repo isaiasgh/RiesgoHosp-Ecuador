@@ -157,19 +157,33 @@
           titulo: `Adulto Mayor (${edadNum} años)`,
           desc: "Incremento moderado en la probabilidad de complicaciones intrahospitalarias."
         });
-      } else if (edadNum <= 5) {
+      } else if (edadNum >= 40) {
+        factores.push({
+          tipo: "warning",
+          icon: "[Contexto]",
+          titulo: `Adulto de Mediana Edad (${edadNum} años)`,
+          desc: "Rango etario de madurez; riesgo basal condicionado principalmente por comorbilidades."
+        });
+      } else if (edadNum >= 18) {
+        factores.push({
+          tipo: "success",
+          icon: "[Favorable]",
+          titulo: `Rango Etario Adulto Joven (${edadNum} años)`,
+          desc: "Factor protector: mayor reserva fisiológica y tolerancia basal a intervenciones clínicas."
+        });
+      } else if (edadNum >= 6) {
+        factores.push({
+          tipo: "success",
+          icon: "[Favorable]",
+          titulo: `Edad Pediátrica / Escolar (${edadNum} años)`,
+          desc: "Rango etario con baja tasa basal de mortalidad intrahospitalaria general."
+        });
+      } else {
         factores.push({
           tipo: "warning",
           icon: "[Vulnerabilidad]",
           titulo: `Primera Infancia (${edadNum} años)`,
           desc: "Inmadurez del sistema inmunitario y susceptibilidad a descompensación rápida."
-        });
-      } else {
-        factores.push({
-          tipo: "success",
-          icon: "[Favorable]",
-          titulo: `Rango Etario Adulto Joven (${edadNum} años)`,
-          desc: "Factor protector: mayor tolerancia basal a intervenciones clínicas."
         });
       }
     } else {
@@ -216,15 +230,22 @@
       factores.push({
         tipo: "warning",
         icon: "[Contexto]",
-        titulo: `Capacidad del Centro (${payload.clase})`,
-        desc: "Recursos de terapia intensiva y soporte especializado limitados en la unidad."
+        titulo: `Nivel de Atención (${payload.clase})`,
+        desc: "Establecimiento de complejidad primaria/básica; recursos de terapia intensiva limitados en la unidad."
       });
-    } else {
+    } else if (clase.includes("especialidades") || clase.includes("especialidad")) {
       factores.push({
         tipo: "success",
         icon: "[Favorable]",
-        titulo: `Capacidad Resolutiva (${payload.clase})`,
-        desc: "Disponibilidad de especialidades médicas y soporte quirúrgico avanzado."
+        titulo: `Centro de Alta Complejidad (${payload.clase})`,
+        desc: "Disponibilidad de subespecialidades médicas, soporte quirúrgico y cuidados intensivos avanzados."
+      });
+    } else {
+      factores.push({
+        tipo: "warning",
+        icon: "[Contexto]",
+        titulo: `Nivel Institucional (${payload.clase})`,
+        desc: "Establecimiento con capacidad resolutiva estándar para internación y tratamiento médico-quirúrgico."
       });
     }
 
