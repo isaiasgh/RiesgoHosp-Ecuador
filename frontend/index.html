@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- ============================== ENCABEZADO / NAV ============================== -->
   <header class="site-header">
     <div class="brand">
       <p class="brand-title">
@@ -26,7 +25,6 @@
   <main>
     <div class="predictor-grid">
 
-      <!-- ============================== FORMULARIO Y TABLAS ============================== -->
       <section class="panel" aria-labelledby="form-title">
         <div class="panel-header">
           <h2 id="form-title">Datos del paciente e ingreso</h2>
@@ -42,8 +40,7 @@
         </div>
 
         <p class="random-hint">El botón «Cargar datos de prueba» autocompleta el formulario con un caso clínico simulado (paciente femenina, 30 años).</p>
-        
-        <!-- Tabla de pacientes -->
+
         <div class="json-table-section hidden" id="json-table-section">
           <div class="table-header">
             <h3>Pacientes cargados desde archivo</h3>
@@ -62,13 +59,11 @@
           <p class="muted" style="margin-top:0.5rem;">Haz clic en una fila para cargar ese paciente en el formulario, o usa el botón "Seleccionar paciente al azar".</p>
         </div>
 
-        <!-- Texto de ayuda con el resultado_real del paciente seleccionado -->
         <p class="random-hint hidden" id="random-hint"></p>
 
         <form id="predict-form" novalidate>
           <div class="form-grid">
 
-            <!-- Ubicación del establecimiento -->
             <div class="field">
               <label for="prov_ubi">Provincia del establecimiento</label>
               <input type="text" id="prov_ubi" name="prov_ubi" list="list_prov_ubi" required autocomplete="off" placeholder="Elige o escribe...">
@@ -137,7 +132,6 @@
               </datalist>
             </div>
 
-            <!-- Datos del paciente -->
             <div class="field">
               <label for="nac_pac">Nacionalidad</label>
               <input type="text" id="nac_pac" name="nac_pac" list="list_nac_pac" required autocomplete="off" placeholder="Elige o escribe...">
@@ -214,7 +208,6 @@
               </datalist>
             </div>
 
-            <!-- Residencia del paciente -->
             <div class="field">
               <label for="prov_res">Provincia de residencia</label>
               <input type="text" id="prov_res" name="prov_res" list="list_prov_res" required autocomplete="off" placeholder="Elige o escribe...">
@@ -235,7 +228,6 @@
               </datalist>
             </div>
 
-            <!-- Fecha de ingreso -->
             <div class="field">
               <label for="mes_ingr">Mes de ingreso</label>
               <input type="text" id="mes_ingr" name="mes_ingr" list="list_mes_ingr" required autocomplete="off" placeholder="Elige o escribe...">
@@ -275,30 +267,25 @@
         </form>
       </section>
 
-      <!-- ============================== RESULTADOS ============================== -->
       <section class="panel" aria-labelledby="result-title">
         <div class="panel-header">
           <h2 id="result-title">Resultado de Inferencia</h2>
         </div>
 
-        <!-- Línea de estado -->
         <p class="status-line" id="status-line" data-state="idle">
           Esperando datos...
         </p>
 
-        <!-- Tarjeta de resultado exitoso -->
         <div class="result-card hidden" id="result-card">
           <span class="muted">Probabilidad de mortalidad</span>
           <p class="result-proba" id="result-proba">0.00%</p>
           <span class="risk-badge" id="risk-badge">—</span>
 
-          <!-- Recomendación de Triaje -->
           <div class="triaje-box" id="triaje-box">
             <span class="triaje-title" id="triaje-title">Recomendación de Triaje</span>
             <p class="triaje-text" id="triaje-text">—</p>
           </div>
 
-         
           <div class="factors-section" id="factors-section">
             <h4>Factores de Riesgo Clínico e Institucional Identificados (CU-02)</h4>
             <ul class="factors-list" id="factors-list"></ul>
@@ -311,7 +298,6 @@
           </div>
         </div>
 
-        <!-- Caja de error -->
         <div class="error-box hidden" id="error-box">
           <h3>Error en la solicitud</h3>
           <p id="error-message"></p>
