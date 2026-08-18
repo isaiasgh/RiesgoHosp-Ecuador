@@ -74,8 +74,7 @@ El proyecto incluye el archivo **`ejemplos_demo.json`** en la raíz y en todas l
 ---
 
 ## 4. Declaración sobre Librerías No Públicas
-
-> **Declaración Institucional:**  
+  
 > En este proyecto **NO se utilizó ninguna librería privada, propietaria ni de pago**.  
 > Todas las herramientas, algoritmos y librerías empleadas son de **código abierto (Open-Source)** y de acceso público gratuito a través del repositorio oficial de Python (**PyPI**), instalables mediante el comando estándar `pip install -r requirements.txt`.
 
